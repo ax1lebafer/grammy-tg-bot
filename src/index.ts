@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import { Bot } from 'grammy';
 import { GrammyError, HttpError } from 'grammy';
+import * as mongoose from 'mongoose';
 
 const BOT_API_KEY = process.env.BOT_API_KEY;
 
@@ -37,9 +38,16 @@ bot.catch((err) => {
 
 // Функция запуска бота
 async function startBot() {
+  const MONGODB_URL = process.env.MONGODB_URL;
+
+  if (!MONGODB_URL) {
+    throw new Error('MONGODB_URL is not defined in environment variables');
+  }
+
   try {
+    await mongoose.connect(MONGODB_URL);
     bot.start();
-    console.log('Bot started');
+    console.log('MongoDB connected and bot started');
   } catch (error) {
     console.error('Error in startBot:', error);
   }
