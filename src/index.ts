@@ -1,8 +1,6 @@
 import 'dotenv/config';
-import { Bot, InlineKeyboard } from 'grammy';
-import { GrammyError, HttpError } from 'grammy';
+import { Bot, GrammyError, HttpError, InlineKeyboard } from 'grammy';
 import * as mongoose from 'mongoose';
-import { User } from './models/User.js';
 import { hydrate } from '@grammyjs/hydrate';
 import { MyContext } from './types.js';
 import { start } from './commands/index.js';
@@ -14,9 +12,51 @@ if (!BOT_API_KEY) {
 }
 
 const bot = new Bot<MyContext>(BOT_API_KEY);
+
 bot.use(hydrate());
 
 bot.command('start', start);
+bot.callbackQuery('menu', (ctx) => {
+  ctx.answerCallbackQuery();
+
+  ctx.callbackQuery.message?.editText(
+    'Вы в главном меню магазина.\nОтсюда Вы можете попасть в раздел с товарами и в свой профиль. Для перехода нажмите кнопку ниже:',
+    {
+      reply_markup: new InlineKeyboard()
+        .text('Товары', 'products')
+        .text('Профиль', 'profile'),
+    }
+  );
+});
+
+bot.callbackQuery('products', (ctx) => {
+  ctx.answerCallbackQuery();
+
+  ctx.callbackQuery.message?.editText('Вы в разделе с товарами', {
+    reply_markup: new InlineKeyboard().text('Назад', 'backToMenu'),
+  });
+});
+
+bot.callbackQuery('profile', (ctx) => {
+  ctx.answerCallbackQuery();
+
+  ctx.callbackQuery.message?.editText('Вы в личном профиле', {
+    reply_markup: new InlineKeyboard().text('Назад', 'backToMenu'),
+  });
+});
+
+bot.callbackQuery('backToMenu', (ctx) => {
+  ctx.answerCallbackQuery();
+
+  ctx.callbackQuery.message?.editText(
+    'Вы в главном меню магазина.\nОтсюда Вы можете попасть в раздел с товарами и в свой профиль. Для перехода нажмите кнопку ниже:',
+    {
+      reply_markup: new InlineKeyboard()
+        .text('Товары', 'products')
+        .text('Профиль', 'profile'),
+    }
+  );
+});
 
 // Ответ на любое сообщение
 bot.on('message:text', (ctx) => {
