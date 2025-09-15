@@ -2,7 +2,7 @@ import { InlineKeyboard } from 'grammy';
 import { User } from '../models/User.js';
 import { MyContext } from '../types.js';
 
-export const start = async (ctx: MyContext) => {
+export const startCommand = async (ctx: MyContext) => {
   if (!ctx.from) {
     return ctx.reply('User info is not available');
   }

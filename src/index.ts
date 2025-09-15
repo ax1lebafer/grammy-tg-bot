@@ -1,10 +1,15 @@
 import 'dotenv/config';
-import { Bot, GrammyError, HttpError, InlineKeyboard } from 'grammy';
+import { Bot, GrammyError, HttpError } from 'grammy';
 import * as mongoose from 'mongoose';
 import { hydrate } from '@grammyjs/hydrate';
 import { MyContext } from './types.js';
-import { start } from './commands/index.js';
-import { User } from './models/User.js';
+import {
+  backCommand,
+  menuCommand,
+  productsCommand,
+  profileCommand,
+  startCommand,
+} from './commands/index.js';
 
 const BOT_API_KEY = process.env.BOT_API_KEY;
 
@@ -16,69 +21,14 @@ const bot = new Bot<MyContext>(BOT_API_KEY);
 
 bot.use(hydrate());
 
-bot.command('start', start);
-bot.callbackQuery('menu', (ctx) => {
-  ctx.answerCallbackQuery();
+bot.command('start', startCommand);
+bot.callbackQuery('menu', menuCommand);
 
-  ctx.callbackQuery.message?.editText(
-    'Вы в главном меню магазина.\nОтсюда Вы можете попасть в раздел с товарами и в свой профиль. Для перехода нажмите кнопку ниже:',
-    {
-      reply_markup: new InlineKeyboard()
-        .text('Товары', 'products')
-        .text('Профиль', 'profile'),
-    }
-  );
-});
+bot.callbackQuery('products', productsCommand);
 
-bot.callbackQuery('products', (ctx) => {
-  ctx.answerCallbackQuery();
+bot.callbackQuery('profile', profileCommand);
 
-  ctx.callbackQuery.message?.editText('Вы в разделе с товарами', {
-    reply_markup: new InlineKeyboard().text('Назад', 'backToMenu'),
-  });
-});
-
-bot.callbackQuery('profile', async (ctx) => {
-  ctx.answerCallbackQuery();
-
-  const user = await User.findOne({ telegramId: ctx.from?.id });
-
-  if (!user) {
-    return ctx.callbackQuery.message?.editText(
-      'Для доступа к профилю необходимо зарегистрироваться\nИспользуй команду /start'
-    );
-  }
-
-  const regData = user.createdAt.toLocaleDateString('ru-RU', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  });
-
-  ctx.callbackQuery.message?.editText(
-    `Здравствуйте, ${ctx.from?.first_name}!
-    \nДата регистрации: ${regData}
-    \nУ Вас еще нет заказов`,
-    {
-      reply_markup: new InlineKeyboard().text('Назад', 'backToMenu'),
-    }
-  );
-});
-
-bot.callbackQuery('backToMenu', (ctx) => {
-  ctx.answerCallbackQuery();
-
-  ctx.callbackQuery.message?.editText(
-    `Вы в главном меню магазина.
-    \nОтсюда Вы можете попасть в раздел с товарами и в свой профиль.
-    \nДля перехода нажмите кнопку ниже:`,
-    {
-      reply_markup: new InlineKeyboard()
-        .text('Товары', 'products')
-        .text('Профиль', 'profile'),
-    }
-  );
-});
+bot.callbackQuery('backToMenu', backCommand);
 
 // Ответ на любое сообщение
 bot.on('message:text', (ctx) => {
