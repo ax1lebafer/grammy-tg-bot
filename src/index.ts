@@ -2,7 +2,13 @@ import 'dotenv/config';
 import { Bot } from 'grammy';
 import { GrammyError, HttpError } from 'grammy';
 
-const bot = new Bot(process.env.BOT_TOKEN);
+const BOT_API_KEY = process.env.BOT_API_KEY;
+
+if (!BOT_API_KEY) {
+  throw new Error('BOT_API_KEY is not defined in environment variables');
+}
+
+const bot = new Bot(BOT_API_KEY);
 
 // Ответ на команду /start
 bot.command('start', (ctx) =>
@@ -10,7 +16,7 @@ bot.command('start', (ctx) =>
 );
 
 // Ответ на любое сообщение
-bot.on('message', (ctx) => {
+bot.on('message:text', (ctx) => {
   ctx.reply(ctx.message.text);
 });
 
